@@ -54,10 +54,9 @@ function help(callback){
 }
 
 function getMeal(session, callback){
-
-    console.log("this " + session.Attributes);
-    if (!session.Attributes == null){
-      getRecipe([]).then((output) => {
+    console.log("this " + session.attributes);
+    if (!session.attributes == null){
+      getRecipe([session.attributes]).then((output) => {
         callback({}, buildSpeechletResponse("Why don't you try " + output, false));
       });
     }
