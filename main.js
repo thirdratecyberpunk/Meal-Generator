@@ -25,7 +25,7 @@ function getRequestURL(ingredients){
   if (ingredients.length){
     url += "?i="
     ingredients.forEach(function(elem) {
-      if (elem != ""){
+      if (elem != null){
         url += elem + ",";
       }
     });
