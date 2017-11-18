@@ -27,13 +27,14 @@ function buildResponse(sessionAttributes, speechletResponse){
 
 function getRecipe(ingredients){
 return new Promise((resolve, reject) => {
+    console.log(getRequestURL(ingredients));
   request.get(getRequestURL(ingredients), function (error, response, body) {
     var results = JSON.parse(body).results;
-    var titles = [];
+    var object = [];
     for (var item in results){
-      titles.push(results[item].title);
+      object.push(results[item]);
     }
-    resolve(titles[Math.floor(Math.random() * titles.length)]);
+    resolve(object[Math.floor(Math.random() * object.length)]);
     reject(error);
   });
 });
@@ -41,23 +42,47 @@ return new Promise((resolve, reject) => {
 
 
 function getRequestURL(ingredients){
-  var url = "http://www.recipepuppy.com/api?i=";
-  ingredients.forEach(function(elem) {
-    url += elem + ",";
-  });
+  var url = "http://www.recipepuppy.com/api/";
+  if (ingredients.length){
+    url += "?i=";
+    ingredients.forEach(function(elem) {
+      if (elem != null){
+        url += elem + ",";
+        }
+    });
+  }
   return url;
-}
+  }
 
 
-function help(callback){
-    callback({}, buildSpeechletResponse("To get a meal idea say get me a meal. To input ingredients say my ingredients are eggs and cheese. To quit this skill, please say quit.", false));
+function help(session, callback){
+    callback(session.attributes, buildSpeechletResponse("To get a meal idea say get me a meal. To input ingredients say my ingredients are eggs and cheese. To quit this skill, please say quit.", false));
 }
 
 function getMeal(session, callback){
-    console.log("this " + session.attributes);
-    if (!session.attributes == null){
-      getRecipe([session.attributes]).then((output) => {
-        callback({}, buildSpeechletResponse("Why don't you try " + output, false));
+
+    if (session.attributes){
+
+        var ingredients;
+
+        if(session.attributes.B == null){
+            ingredients = [session.attributes.A];
+        }
+        else if(session.attributes.C == null){
+            ingredients = [session.attributes.A,session.attributes.B];
+        }
+        else if(session.attributes.D == null){
+            ingredients = [session.attributes.A,session.attributes.B,session.attributes.C];
+        }
+        else if(session.attributes.E == null){
+            ingredients = [session.attributes.A,session.attributes.B,session.attributes.C, session.attributes.D];
+        }
+        else{
+            ingredients = [session.attributes.A,session.attributes.B,session.attributes.C, session.attributes.D, session.attributes.E];
+        }
+
+        getRecipe(ingredients).then((output) => {
+        callback(session.attributes, buildSpeechletResponse("Why don't you try " + output.title + ". This uses " + output.ingredients, false));
       });
     }
     else{
@@ -65,18 +90,31 @@ function getMeal(session, callback){
     }
 }
 
-function createIngredientsAttributes(ingredients){
+function createIngredientsAttributes(A,B,C,D,E){
     return {
-        ingredients,
+        A,
+        B,
+        C,
+        D,
+        E,
     };
 }
 
 function inputIngredients (intent, session, callback){
 
-    var ingredients = [intent.slots.fooda.value, intent.slots.foodb.value, intent.slots.foodc.value, intent.slots.foodd.value, intent.slots.foodc.value];
-    getRecipe(ingredients).then((output) => {
-        callback(createIngredientsAttributes(ingredients), buildSpeechletResponse("Based on your ingredients we reccomend you make " + output + ". If this recipe is not to your liking, ask for a new one by saying get me a recipe", false));
+    var A = intent.slots.fooda.value;
+    var B = intent.slots.foodb.value;
+    var C = intent.slots.foodc.value;
+    var D = intent.slots.foodd.value;
+    var E = intent.slots.foode.value;
+
+    getRecipe([A,B,C,D,E]).then((output) => {
+        callback(createIngredientsAttributes(A,B,C,D,E), buildSpeechletResponse("Based on your ingredients we reccomend you make " + output.title + ". This uses " + output.ingredients + ". If this recipe is not to your liking, ask for a new one by saying get me a recipe", false));
     });
+}
+
+function invalidIntent(session, callback){
+    callback(session.attributes, buildSpeechletResponse("Sorry I do not understand what you are trying to say, ask for help if you want to know what this skill can do", false));
 }
 
 function welcome(callback){
@@ -88,23 +126,21 @@ function sessionEnd(callback){
 }
 
 function onSessionStarted(sessionStartedRequest, session) {
-    console.log('sessionStartedRequest requestId = ${sessionStartedRequest.requestId}, sessionId = ${session.sessionId}');
 }
 
 function onLaunch(launchRequest, session, callback) {
-        welcome(callback);
+        welcome(session, callback);
 }
 
 function onIntent(intentRequest, session, callback) {
-
-    console.log('intentRequest requestId = ${intentRequest.requestId}, sessionId = ${session.sessionId}');
 
     const intent = intentRequest.intent;
     const intentName = intentRequest.intent.name;
 
         switch(intentName){
 
-        case 'inputIngredients' :
+        case 'InputIngredients' :
+            inputIngredients(intent, session, callback);
             break;
 
         case 'getMeAMeal' :
@@ -112,7 +148,11 @@ function onIntent(intentRequest, session, callback) {
             break;
 
         case 'AMAZON.HelpIntent' :
-            help(callback);
+            help(session, callback);
+            break;
+
+        case 'invalidIntent' :
+            invalidIntent(callback);
             break;
 
         case 'AMAZON.StopIntent' :
@@ -126,7 +166,7 @@ function onIntent(intentRequest, session, callback) {
 }
 
 function onSessionEnded(sessionEndedRequest, session) {
-    console.log('onSessionEnded requestId = ${sessionEndedRequest.requestId}, sessionId = ${session.sessionId}');
+
 }
 
 
