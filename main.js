@@ -1,7 +1,8 @@
 var request = require('request');
 
+function getRecipe(ingredients){
 return new Promise((resolve, reject) => {
-  request.get(getRequestURL(["eggs", "kidney beans"]), function (error, response, body) {
+  request.get(getRequestURL(ingredients), function (error, response, body) {
     var results = JSON.parse(body)["results"];
     var titles = [];
     for (item in results){
@@ -11,6 +12,7 @@ return new Promise((resolve, reject) => {
     reject(error);
   });
 });
+}
 
 
 function getRequestURL(ingredients){
