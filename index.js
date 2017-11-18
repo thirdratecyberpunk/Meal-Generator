@@ -28,12 +28,12 @@ function buildResponse(sessionAttributes, speechletResponse){
 function getRecipe(ingredients){
 return new Promise((resolve, reject) => {
   request.get(getRequestURL(ingredients), function (error, response, body) {
-    var results = JSON.parse(body)["results"];
+    var results = JSON.parse(body).results;
     var titles = [];
-    for (item in results){
-      titles.push(results[item]["title"]);
+    for (var item in results){
+      titles.push(results[item].title);
     }
-    resolve(titles[Math.floor(Math.random() * titles.length]);
+    resolve(titles[Math.floor(Math.random() * titles.length)]);
     reject(error);
   });
 });
@@ -50,27 +50,42 @@ function getRequestURL(ingredients){
 
 
 function help(callback){
-    callback({}, buildSpeechletResponse("Say to Alexa get me a meal if you want to get a meal, if you want your meal to be based on the ingredients you currently have, say my ingredients are ", false));
+    callback({}, buildSpeechletResponse("To get a meal idea say get me a meal. To input ingredients say my ingredients are eggs and cheese. To quit this skill, please say quit.", false));
 }
 
 function getMeal(session, callback){
-  if(session.attributes == null){
-      getRecipe([""]).then((output) => {
-        callback({}, buildSpeechletResponse({}, "Why don't you try " + output));
+
+    console.log("this " + session.Attributes);
+    if (!session.Attributes == null){
+      getRecipe([]).then((output) => {
+        callback({}, buildSpeechletResponse("Why don't you try " + output, false));
       });
-  }
+    }
+    else{
+        callback({}, buildSpeechletResponse("You need to enter some ingredients first, you can do this by saying my ingredients are eggs and cheese, you may input up to five ingredients", false));
+    }
 }
 
-function inputIngedients(session, callback){
-
+function createIngredientsAttributes(ingredients){
+    return {
+        ingredients,
+    };
 }
 
-function welcome(session, callback){
+function inputIngredients (intent, session, callback){
 
+    var ingredients = [intent.slots.fooda.value, intent.slots.foodb.value, intent.slots.foodc.value, intent.slots.foodd.value, intent.slots.foodc.value];
+    getRecipe(ingredients).then((output) => {
+        callback(createIngredientsAttributes(ingredients), buildSpeechletResponse("Based on your ingredients we reccomend you make " + output + ". If this recipe is not to your liking, ask for a new one by saying get me a recipe", false));
+    });
 }
 
-function sessionEnd(intent, session, callback){
+function welcome(callback){
+    callback({}, buildSpeechletResponse("Welcome to our Meal generator, also I love brumhack", false));
+}
 
+function sessionEnd(callback){
+    callback({}, buildSpeechletResponse("Thankyou for using this skill, goodbye", true));
 }
 
 function onSessionStarted(sessionStartedRequest, session) {
@@ -78,7 +93,7 @@ function onSessionStarted(sessionStartedRequest, session) {
 }
 
 function onLaunch(launchRequest, session, callback) {
-        welcome(session, callback);
+        welcome(callback);
 }
 
 function onIntent(intentRequest, session, callback) {
@@ -90,13 +105,11 @@ function onIntent(intentRequest, session, callback) {
 
         switch(intentName){
 
-        case 'welcome':
-            break;
-
         case 'inputIngredients' :
             break;
 
         case 'getMeAMeal' :
+            getMeal(session, callback);
             break;
 
         case 'AMAZON.HelpIntent' :
