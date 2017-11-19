@@ -1,0 +1,44 @@
+{
+  "intents": [
+    {
+      "slots": [
+        {
+          "name": "fooda",
+          "type": "Food_types"
+        },
+        {
+          "name": "foodb",
+          "type": "Food_types"
+        },
+        {
+          "name": "foodc",
+          "type": "Food_types"
+        },
+        {
+          "name": "foodd",
+          "type": "Food_types"
+        },
+        {
+          "name": "foode",
+          "type": "Food_types"
+        }
+      ],
+      "intent": "InputIngredients"
+    },
+    {
+      "intent": "getMeAMeal"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "invalidIntent"
+    }
+  ]
+}
