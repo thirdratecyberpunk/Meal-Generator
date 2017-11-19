@@ -117,7 +117,7 @@ function invalidIntent(session, callback){
     callback(session.attributes, buildSpeechletResponse("Sorry I do not understand what you are trying to say, ask for help if you want to know what this skill can do", false));
 }
 
-function welcome(callback){
+function welcome(session, callback){
     callback({}, buildSpeechletResponse("Welcome to our Meal generator, also I love brumhack", false));
 }
 
@@ -152,7 +152,7 @@ function onIntent(intentRequest, session, callback) {
             break;
 
         case 'invalidIntent' :
-            invalidIntent(callback);
+            invalidIntent(session, callback);
             break;
 
         case 'AMAZON.StopIntent' :
